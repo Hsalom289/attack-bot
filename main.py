@@ -81,10 +81,10 @@ class TelegramAttackBot:
                         print(f"{phone}: Bot javob berdi - {message.text[:50] if message.text else 'Media'}...")
                         return True
                 print(f"{phone}: Bot javobini kutmoqda...")
-                await asyncio.sleep(5)  # 5 soniya kutiladi, keyin qayta tekshiriladi
+                await asyncio.sleep(2)  # 5 soniya kutiladi, keyin qayta tekshiriladi
             except Exception as e:
                 print(f"{phone}: Bot javobini kutishda xatolik - {str(e)}")
-                await asyncio.sleep(5)  # Xatolik bo‘lsa ham 5 soniya kutib qayta urinamiz
+                await asyncio.sleep(2)
 
     async def attack_bot(self, phone):
         """Botga hujum qilish jarayoni"""
@@ -167,48 +167,47 @@ class TelegramAttackBot:
             await client.send_message(BOT_USERNAME, '📝 Boshqa e\'lonlar')
             await self._wait_for_bot_response(client, phone)
             
-            # 8-qadam: @zarafshan_uy guruhidan rasmlarni olib yuborish
-            try:
-                group = await client.get_entity('@zarafshan_uy')
-                print(f"{phone}: @zarafshan_uy guruhiga ulandi")
-                
-                messages = [msg async for msg in client.iter_messages(group, limit=50) if msg.photo]
-                if messages:
-                    random_photos = random.sample(messages, min(2, len(messages)))
-                    for photo_msg in random_photos:
-                        await client.send_file(BOT_USERNAME, photo_msg.photo)
-                        print(f"{phone}: {BOT_USERNAME} ga rasm yuborildi")
-                        await self._wait_for_bot_response(client, phone)
-                        await asyncio.sleep(random.uniform(1, 2))
-                else:
-                    print(f"{phone}: @zarafshan_uy da rasm topilmadi")
-                
-                # 9-qadam: "✅ Rasmlarni tasdiqlash" bosish
-                await client.send_message(BOT_USERNAME, '✅ Rasmlarni tasdiqlash')
+            # 8-qadam: @zarafshan_uy guruhidan rasmlarni olish va yuborish
+            group = await client.get_entity('@zarafshan_uy')
+            print(f"{phone}: @zarafshan_uy guruhiga ulandi")
+            messages = [msg async for msg in client.iter_messages(group, limit=50) if msg.photo]
+            
+            if messages:
+                # Birinchi rasmni yuborish
+                random_photo = random.choice(messages)
+                await client.send_file(BOT_USERNAME, random_photo.photo)
+                print(f"{phone}: {BOT_USERNAME} ga rasm yuborildi")
                 await self._wait_for_bot_response(client, phone)
                 
-                # 10-qadam: Cheksiz aylanish
-                while True:
-                    await client.send_message(BOT_USERNAME, '📝 Boshqa e\'lonlar')
-                    print(f"{phone}: 📝 Boshqa e'lonlar bosildi")
-                    await self._wait_for_bot_response(client, phone)
-                    
-                    if messages:
-                        random_photo = random.choice(messages)
-                        await client.send_file(BOT_USERNAME, random_photo.photo)
-                        print(f"{phone}: {BOT_USERNAME} ga rasm yuborildi")
-                        await self._wait_for_bot_response(client, phone)
-                        await asyncio.sleep(random.uniform(1, 2))
-                    
-                    if messages:
-                        random_photo = random.choice(messages)
-                        await client.send_file(BOT_USERNAME, random_photo.photo)
-                        print(f"{phone}: {BOT_USERNAME} ga yana rasm yuborildi")
-                        await self._wait_for_bot_response(client, phone)
-                        await asyncio.sleep(random.uniform(1, 2))
+                # Ikkinchi rasmni yuborish
+                random_photo = random.choice(messages)
+                await client.send_file(BOT_USERNAME, random_photo.photo)
+                print(f"{phone}: {BOT_USERNAME} ga yana rasm yuborildi")
+                await self._wait_for_bot_response(client, phone)
+            else:
+                print(f"{phone}: @zarafshan_uy da rasm topilmadi")
             
-            except Exception as e:
-                print(f"{phone}: @zarafshan_uy bilan ishlashda xatolik - {str(e)}")
+            # 9-qadam: "✅ Rasmlarni tasdiqlash" bosish
+            await client.send_message(BOT_USERNAME, '✅ Rasmlarni tasdiqlash')
+            await self._wait_for_bot_response(client, phone)
+            
+            # 10-qadam: Har bir javobdan keyin bitta harakat
+            while True:
+                await client.send_message(BOT_USERNAME, '📝 Boshqa e\'lonlar')
+                print(f"{phone}: 📝 Boshqa e'lonlar bosildi")
+                await self._wait_for_bot_response(client, phone)
+                
+                if messages:
+                    random_photo = random.choice(messages)
+                    await client.send_file(BOT_USERNAME, random_photo.photo)
+                    print(f"{phone}: {BOT_USERNAME} ga rasm yuborildi")
+                    await self._wait_for_bot_response(client, phone)
+                
+                if messages:
+                    random_photo = random.choice(messages)
+                    await client.send_file(BOT_USERNAME, random_photo.photo)
+                    print(f"{phone}: {BOT_USERNAME} ga yana rasm yuborildi")
+                    await self._wait_for_bot_response(client, phone)
                 
         except errors.FloodWaitError as e:
             print(f"{phone}: Flood chegarasi - {e.seconds} soniya kutish kerak")
