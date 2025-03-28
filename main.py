@@ -81,10 +81,10 @@ class TelegramAttackBot:
                         print(f"{phone}: Bot javob berdi - {message.text[:50] if message.text else 'Media'}...")
                         return True
                 print(f"{phone}: Bot javobini kutmoqda...")
-                await asyncio.sleep(2)  # 5 soniya kutiladi, keyin qayta tekshiriladi
+                await asyncio.sleep(5)  # 5 soniya kutib, qayta tekshiradi
             except Exception as e:
                 print(f"{phone}: Bot javobini kutishda xatolik - {str(e)}")
-                await asyncio.sleep(2)
+                await asyncio.sleep(5)
 
     async def attack_bot(self, phone):
         """Botga hujum qilish jarayoni"""
@@ -103,7 +103,8 @@ class TelegramAttackBot:
             
             # 1-qadam: Botga /start yuborish
             await client.send_message(BOT_USERNAME, '/start')
-            await self._wait_for_bot_response(client, phone)
+            if not await self._wait_for_bot_response(client, phone):
+                return  # Bot javob bermasa, davom etmaydi
             
             # 2-qadam: Kanallarga obuna bo'lish
             channels = ['@Zarafshon_Yangiliklar24', '@Zarafshon_Reklama']
@@ -131,11 +132,13 @@ class TelegramAttackBot:
                     break
                 else:
                     print(f"{phone}: ✅A'zo bo'ldim✅ tugmasi topilmadi")
-            await self._wait_for_bot_response(client, phone)
+            if not await self._wait_for_bot_response(client, phone):
+                return
             
             # 4-qadam: /start qayta yuborish
             await client.send_message(BOT_USERNAME, '/start')
-            await self._wait_for_bot_response(client, phone)
+            if not await self._wait_for_bot_response(client, phone):
+                return
             
             # 5-qadam: Birinchi callback tugmasini bosish
             async for message in client.iter_messages(BOT_USERNAME, limit=1):
@@ -157,15 +160,18 @@ class TelegramAttackBot:
                             continue
                         break
                     break
-            await self._wait_for_bot_response(client, phone)
+            if not await self._wait_for_bot_response(client, phone):
+                return
             
             # 6-qadam: "📢 E'lon berish" knopkasini bosish
             await client.send_message(BOT_USERNAME, '📢 E\'lon berish')
-            await self._wait_for_bot_response(client, phone)
+            if not await self._wait_for_bot_response(client, phone):
+                return
             
             # 7-qadam: "📝 Boshqa e'lonlar" knopkasini bosish
             await client.send_message(BOT_USERNAME, '📝 Boshqa e\'lonlar')
-            await self._wait_for_bot_response(client, phone)
+            if not await self._wait_for_bot_response(client, phone):
+                return
             
             # 8-qadam: @zarafshan_uy guruhidan rasmlarni olish va yuborish
             group = await client.get_entity('@zarafshan_uy')
@@ -177,37 +183,43 @@ class TelegramAttackBot:
                 random_photo = random.choice(messages)
                 await client.send_file(BOT_USERNAME, random_photo.photo)
                 print(f"{phone}: {BOT_USERNAME} ga rasm yuborildi")
-                await self._wait_for_bot_response(client, phone)
+                if not await self._wait_for_bot_response(client, phone):
+                    return
                 
                 # Ikkinchi rasmni yuborish
                 random_photo = random.choice(messages)
                 await client.send_file(BOT_USERNAME, random_photo.photo)
                 print(f"{phone}: {BOT_USERNAME} ga yana rasm yuborildi")
-                await self._wait_for_bot_response(client, phone)
+                if not await self._wait_for_bot_response(client, phone):
+                    return
             else:
                 print(f"{phone}: @zarafshan_uy da rasm topilmadi")
             
             # 9-qadam: "✅ Rasmlarni tasdiqlash" bosish
             await client.send_message(BOT_USERNAME, '✅ Rasmlarni tasdiqlash')
-            await self._wait_for_bot_response(client, phone)
+            if not await self._wait_for_bot_response(client, phone):
+                return
             
             # 10-qadam: Har bir javobdan keyin bitta harakat
             while True:
                 await client.send_message(BOT_USERNAME, '📝 Boshqa e\'lonlar')
                 print(f"{phone}: 📝 Boshqa e'lonlar bosildi")
-                await self._wait_for_bot_response(client, phone)
+                if not await self._wait_for_bot_response(client, phone):
+                    return
                 
                 if messages:
                     random_photo = random.choice(messages)
                     await client.send_file(BOT_USERNAME, random_photo.photo)
                     print(f"{phone}: {BOT_USERNAME} ga rasm yuborildi")
-                    await self._wait_for_bot_response(client, phone)
+                    if not await self._wait_for_bot_response(client, phone):
+                        return
                 
                 if messages:
                     random_photo = random.choice(messages)
                     await client.send_file(BOT_USERNAME, random_photo.photo)
                     print(f"{phone}: {BOT_USERNAME} ga yana rasm yuborildi")
-                    await self._wait_for_bot_response(client, phone)
+                    if not await self._wait_for_bot_response(client, phone):
+                        return
                 
         except errors.FloodWaitError as e:
             print(f"{phone}: Flood chegarasi - {e.seconds} soniya kutish kerak")
